@@ -41,6 +41,9 @@ body {
     justify-content: center;
 }
 
+.no-scroll {
+    overflow: hidden;
+}
 
 // Обмежуючий контейнер - цей контейнер часто зустрічається в проектах, якщо сайт має певну геометрію.
 [class*='__container'] {
