@@ -9,3 +9,24 @@ export function initializeModalTriggers() {
         }
     });
 };
+
+
+// Відкриття виводом за межі раз на сесію
+
+// export function initializeModalTriggers() {
+//     if (sessionStorage.getItem('modalOpened') === 'true') return;
+
+//     const openModal = () => {
+//         location = '#open-modal';
+//         sessionStorage.setItem('modalOpened', 'true');
+//     };
+
+//     setTimeout(openModal, 30000); // Відкрити через 30 секунд
+//     setInterval(openModal, 300000); // Відкрити кожні 5 хвилин
+
+//     document.addEventListener('mouseleave', e => {
+//         if (e.clientY <= 0 || e.clientX <= 0 || e.clientX >= innerWidth || e.clientY >= innerHeight) {
+//             openModal();
+//         }
+//     });
+// };

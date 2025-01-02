@@ -101,3 +101,7 @@ h1 {
     @include adaptiveValue('font-size', 60px, 24px);
 }
 
+// Cтилізація ектів статусу для поточної сторінки
+.currentPage {
+    text-decoration: underline;
+}
