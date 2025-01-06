@@ -2,31 +2,6 @@
 // Функціонал для бургер меню. 
 // ---------------------------------------------------------------------------------------------------------------
 
-// export function initBurgerMenu() {
-//     document.addEventListener('DOMContentLoaded', () => {
-//         // ---------------------------------------------------------------------------------------------------------------
-//         // Класи до яких ми будемо доступатись
-//         // ---------------------------------------------------------------------------------------------------------------
-//         const burger = document.querySelector('.header__burger');
-//         const nav = document.querySelector('.header__nav');
-//         const body = document.body; // Доступ до body
-
-//         // ---------------------------------------------------------------------------------------------------------------
-//         // При кліці на бургер додаємо клас .active для .header__burger, .header__nav та блокуємо скрол сторінки
-//         // ---------------------------------------------------------------------------------------------------------------
-//         burger.addEventListener('click', () => {
-//             burger.classList.toggle('active');
-//             nav.classList.toggle('active');
-
-//             if (burger.classList.contains('active')) {
-//                 body.classList.add('no-scroll'); // Заборона скролу
-//             } else {
-//                 body.classList.remove('no-scroll'); // Відновлення скролу
-//             }
-//         });
-//     });
-// }
-
 // beta version
 export function initBurgerMenu() {
     document.addEventListener('DOMContentLoaded', () => {
