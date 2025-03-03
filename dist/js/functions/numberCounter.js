@@ -35,12 +35,3 @@ function animateCounter(counter) {
 
     requestAnimationFrame(updateCounter);
 }
-
-
-/*
-    <section class="page_section">
-        <div data-counter-target="2000" class="page__counter">0</div>
-        <div data-counter-target="500" class="page__counter">0</div>
-        <div data-counter-target="-10" class="page__counter">0</div>
-    </section>
-*/

@@ -26,14 +26,3 @@ export function selectMenu() {
         }
       });     
 }
-
-// як використовувати
-
-/* <div class="select">
-<button class="select__button" type="button">Оберіть варіант</button>
-<ul class="select__dropdown">
-  <li class="select__option" data-value="1">Варіант 1</li>
-  <li class="select__option" data-value="2">Варіант 2</li>
-  <li class="select__option" data-value="3">Варіант 3</li>
-</ul>
-</div> */

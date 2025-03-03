@@ -12,17 +12,3 @@ export function initTabs() {
       });
     });
   }
-
-/*
-<div class="tabs">
-    <div class="tabs__buttons">
-        <button class="tabs__button tabs__button--active">Tab 1</button>
-        <button class="tabs__button">Tab 2</button>
-        <button class="tabs__button">Tab 3</button>
-    </div>
-    
-    <div class="tabs__content tabs__content--active">Content for Tab 1</div>
-    <div class="tabs__content">Content for Tab 2</div>
-    <div class="tabs__content">Content for Tab 3</div>
-</div>
-*/

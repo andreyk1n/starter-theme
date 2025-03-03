@@ -49,27 +49,3 @@ export function initAccordion() {
         firstContent.style.maxHeight = `${firstContent.scrollHeight}px`;
     }
 }
-
-// ---------------------------------------------------------------------------------------------------------------
-// Приклад використання аккордіону
-/*<div class="accordion">
-    <div class="accordion__item">
-        <div class="accordion__header">Заголовок 1</div>
-        <div class="accordion__content">
-            <p>Контент для заголовка 1.</p>
-        </div>
-    </div>
-    <div class="accordion__item">
-        <div class="accordion__header">Заголовок 2</div>
-        <div class="accordion__content">
-            <p>Контент для заголовка 2.</p>
-        </div>
-    </div>
-    <div class="accordion__item">
-        <div class="accordion__header">Заголовок 3</div>
-        <div class="accordion__content">
-            <p>Контент для заголовка 3.</p>
-        </div>
-    </div>
-</div> */
-// ---------------------------------------------------------------------------------------------------------------
