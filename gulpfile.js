@@ -11,7 +11,7 @@ const plumber = require('gulp-plumber');
 // === ШЛЯХИ ДО ФАЙЛІВ ===
 const paths = {
   html: {
-    src: 'src/pages/*.html',
+    src: 'src/pages/*.html',  // Шлях до HTML файлів
     dest: 'dist/'
   },
   styles: {
@@ -32,7 +32,7 @@ function html() {
   return gulp.src(paths.html.src)
     .pipe(fileInclude({
       prefix: '@@',
-      basepath: 'src/partials/'
+      basepath: 'src/'  // Шукаємо файли для інклюдів в папці src
     }))
     .pipe(gulp.dest(paths.html.dest))
     .pipe(browserSync.stream());
@@ -75,8 +75,8 @@ function watch() {
     }
   });
 
-  gulp.watch(paths.html.src, html);
-  gulp.watch('src/partials/*.html', html);
+  gulp.watch(paths.html.src, html);  // Слідкуємо за змінами в HTML файлах
+  gulp.watch('src/partials/**/*.html', html);  // Слідкуємо за змінами в частинах HTML
   gulp.watch(paths.styles.src, styles);
   gulp.watch(paths.scripts.app, jsApp);
   gulp.watch(paths.scripts.functions, jsFunctions);
