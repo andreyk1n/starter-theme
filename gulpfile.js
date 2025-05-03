@@ -42,11 +42,30 @@ const paths = {
   }
 };
 
+// Обробка кастомних директив @@img("...") та @@bgimg("...") в HTML-файлах
+function replaceAliases() {
+  return through2.obj(function (file, _, cb) {
+    if (file.isBuffer()) {
+      let content = file.contents.toString();
+
+      // Заміна @img/filename.jpg → images/filename.jpg
+      content = content.replace(/@img\//g, './images/');
+
+      // Заміна @bgimg/filename.jpg → background-image: url('images/filename.jpg');
+      content = content.replace(/@bgimg\/([^)'" ]+)/g, "background-image: url('images/$1')");
+
+      file.contents = Buffer.from(content);
+    }
+    cb(null, file);
+  });
+}
+
 // Обробка HTML-файлів із підключенням include'ів
 function html() {
   console.log('\x1b[36m%s\x1b[0m', '📄 HTML обробляється...');
   return gulp.src(paths.html.src)
     .pipe(fileInclude({ prefix: '@@', basepath: 'src/html/' })) // Пошук @@include
+    .pipe(replaceAliases()) // Заміна @img/ та @bgimg/
     .pipe(gulp.dest(paths.html.dest)) // Запис у dist/
     .pipe(browserSync.stream()); // Оновлення сторінки
 }
