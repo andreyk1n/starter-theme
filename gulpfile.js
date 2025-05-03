@@ -7,12 +7,14 @@ const rename = require('gulp-rename');
 const browserSync = require('browser-sync').create();
 const uglify = require('gulp-uglify');
 const plumber = require('gulp-plumber');
+const path = require('path');
+const fs = require('fs');
 
 // === ШЛЯХИ ДО ФАЙЛІВ ===
 const paths = {
   html: {
-    src: 'src/html/pages/*.html',   // Шлях до основних HTML-файлів
-    watch: 'src/html/**/*.html',    // Усе HTML для спостереження
+    src: 'src/html/pages/*.html',
+    watch: 'src/html/**/*.html',
     dest: 'dist/'
   },
   styles: {
@@ -24,22 +26,26 @@ const paths = {
     appDest: 'dist/js/',
     functions: 'src/js/functions/**/*.js',
     functionsDest: 'dist/js/functions/'
+  },
+  images: {
+    src: 'src/images/**/*.*',
+    dest: 'dist/images/'
   }
 };
 
-// === ОБРОБКА HTML З FILE INCLUDE ===
+// === HTML ===
 function html() {
   console.log('\x1b[36m%s\x1b[0m', '📄 HTML обробляється...');
   return gulp.src(paths.html.src)
     .pipe(fileInclude({
       prefix: '@@',
-      basepath: 'src/html/' // Тепер усі include-и відносно src/html/
+      basepath: 'src/html/'
     }))
     .pipe(gulp.dest(paths.html.dest))
     .pipe(browserSync.stream());
 }
 
-// === ОБРОБКА SCSS У СТИЛІ ===
+// === SCSS ===
 function styles() {
   console.log('\x1b[35m%s\x1b[0m', '🎨 SCSS компілюється...');
   return gulp.src(paths.styles.src)
@@ -50,7 +56,7 @@ function styles() {
     .pipe(browserSync.stream());
 }
 
-// === КОПІЮВАННЯ app.js БЕЗ МІНІМІЗАЦІЇ ===
+// === JS app.js ===
 function jsApp() {
   console.log('\x1b[33m%s\x1b[0m', '🧩 jsApp копіюється без мінімізації...');
   return gulp.src(paths.scripts.app)
@@ -58,7 +64,7 @@ function jsApp() {
     .pipe(browserSync.stream());
 }
 
-// === МІНІМІЗАЦІЯ functions/*.js ===
+// === JS functions (мінімізація) ===
 function jsFunctions() {
   console.log('\x1b[32m%s\x1b[0m', '⚙️ jsFunctions мінімізується...');
   return gulp.src(paths.scripts.functions)
@@ -68,7 +74,35 @@ function jsFunctions() {
     .pipe(browserSync.stream());
 }
 
-// === СПОСТЕРЕЖЕННЯ ЗА ЗМІНАМИ + BROWSERSYNC ===
+// === ЗОБРАЖЕННЯ (копіювання) ===
+function images() {
+  console.log('\x1b[34m%s\x1b[0m', '🖼️ Зображення копіюються...');
+  return gulp.src(paths.images.src)
+    .pipe(gulp.dest(paths.images.dest))
+    .pipe(browserSync.stream());
+}
+
+// === ВИДАЛЕННЯ ЗОБРАЖЕНЬ ІЗ DIST, ЯКЩО ЇХ ВИДАЛЕНО В SRC ===
+function watchImages() {
+  const watcher = gulp.watch(paths.images.src, images);
+
+  watcher.on('unlink', async function (filePath) {
+    const del = (await import('del')).deleteSync;
+
+    const srcFull = path.resolve(filePath);
+    const distFull = srcFull.replace(
+      path.resolve('src/images'),
+      path.resolve('dist/images')
+    );
+
+    if (fs.existsSync(distFull)) {
+      del(distFull, { force: true });
+      console.log('\x1b[31m%s\x1b[0m', `🗑️ Видалено: ${distFull}`);
+    }
+  });
+}
+
+// === СПОСТЕРЕЖЕННЯ ЗА ВСІМ ===
 function watch() {
   browserSync.init({
     server: {
@@ -76,15 +110,16 @@ function watch() {
     }
   });
 
-  gulp.watch(paths.html.watch, html); // Слідкуємо за всіма HTML у src/html/
+  gulp.watch(paths.html.watch, html);
   gulp.watch(paths.styles.src, styles);
   gulp.watch(paths.scripts.app, jsApp);
   gulp.watch(paths.scripts.functions, jsFunctions);
+  watchImages(); // окремий виклик
   console.log('\x1b[44m%s\x1b[0m', '👀 Gulp слідкує за файлами...');
 }
 
-// === ЕКСПОРТ ЗАДАЧ ===
+// === ЕКСПОРТИ ===
 exports.default = gulp.series(
-  gulp.parallel(html, styles, jsApp, jsFunctions),
+  gulp.parallel(html, styles, jsApp, jsFunctions, images),
   watch
 );
