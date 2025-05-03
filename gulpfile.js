@@ -1,62 +1,108 @@
-// === ІМПОРТ ПЛАГІНІВ ===
-const gulp = require('gulp');
-const fileInclude = require('gulp-file-include');
-const sass = require('gulp-sass')(require('sass'));
-const cleanCSS = require('gulp-clean-css');
-const rename = require('gulp-rename');
-const browserSync = require('browser-sync').create();
-const uglify = require('gulp-uglify');
-const plumber = require('gulp-plumber');
-const path = require('path');
-const fs = require('fs');
+// Імпортуємо необхідні пакети
+const gulp = require('gulp'); // Основний Gulp
+const fileInclude = require('gulp-file-include'); // Дозволяє вставляти частини HTML за допомогою @@include
+const sass = require('gulp-sass')(require('sass')); // Компілятор SCSS у CSS
+const cleanCSS = require('gulp-clean-css'); // Мініфікація CSS
+const rename = require('gulp-rename'); // Перейменування файлів
+const browserSync = require('browser-sync').create(); // Автоматичне оновлення браузера при змінах
+const uglify = require('gulp-uglify'); // Мініфікація JavaScript
+const plumber = require('gulp-plumber'); // Запобігає зупинці Gulp при помилках
+const fs = require('fs'); // Робота з файловою системою (вбудований модуль Node.js)
+const path = require('path'); // Робота з шляхами (вбудований модуль Node.js)
+const through2 = require('through2'); // Обробка потоків (для sitemap)
 
-// === ШЛЯХИ ДО ФАЙЛІВ ===
+// Очищення директорії dist перед збіркою
+// del — ES-модуль, тому імпортуємо динамічно
+async function clean() {
+  const del = (await import('del')).deleteAsync;
+  return del('dist'); // Видаляємо папку dist
+}
+
+// Шляхи до вхідних/вихідних файлів
 const paths = {
   html: {
-    src: 'src/html/pages/*.html',
-    watch: 'src/html/**/*.html',
-    dest: 'dist/'
+    src: 'src/html/pages/*.html', // HTML-сторінки
+    watch: 'src/html/**/*.html',  // Всі HTML-файли для відслідковування змін
+    dest: 'dist/' // Куди зберігати HTML
   },
   styles: {
-    src: 'src/scss/**/*.scss',
-    dest: 'dist/css/'
+    src: 'src/scss/**/*.scss', // Всі SCSS-файли
+    dest: 'dist/css/' // Куди зберігати зкомпільовані CSS
   },
   scripts: {
-    app: 'src/js/app.js',
-    appDest: 'dist/js/',
-    functions: 'src/js/functions/**/*.js',
-    functionsDest: 'dist/js/functions/'
+    app: 'src/js/app.js', // Основний JS-файл
+    appDest: 'dist/js/', // Куди копіювати app.js
+    functions: 'src/js/functions/**/*.js', // Усі дрібні JS-функції
+    functionsDest: 'dist/js/functions/' // Куди копіювати мінімізовані функції
   },
   images: {
-    src: 'src/images/**/*.*',
-    dest: 'dist/images/'
+    src: 'src/images/**/*.*', // Всі зображення
+    dest: 'dist/images/' // Куди копіювати зображення
   }
 };
 
-// === HTML ===
+// Обробка HTML-файлів із підключенням include'ів
 function html() {
   console.log('\x1b[36m%s\x1b[0m', '📄 HTML обробляється...');
   return gulp.src(paths.html.src)
-    .pipe(fileInclude({
-      prefix: '@@',
-      basepath: 'src/html/'
-    }))
-    .pipe(gulp.dest(paths.html.dest))
-    .pipe(browserSync.stream());
+    .pipe(fileInclude({ prefix: '@@', basepath: 'src/html/' })) // Пошук @@include
+    .pipe(gulp.dest(paths.html.dest)) // Запис у dist/
+    .pipe(browserSync.stream()); // Оновлення сторінки
 }
 
-// === SCSS ===
+// Генерація sitemap.html на основі всіх HTML-сторінок
+function sitemap(cb) {
+  const links = [];
+
+  // Знаходимо всі HTML-файли в dist
+  gulp.src('dist/**/*.html', { read: false })
+    .pipe(through2.obj(function (file, _, callback) {
+      const relativePath = path.relative('dist', file.path).replace(/\\/g, '/');
+      if (relativePath !== 'sitemap.html') {
+        links.push(`<li><a href="${relativePath}">${relativePath}</a></li>`);
+      }
+      callback();
+    }, function (callback) {
+      // Формуємо HTML для sitemap
+      const html = `
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Карта сайту</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
+    ul { line-height: 1.8; }
+    a { color: #007acc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Карта сайту</h1>
+  <ul>${links.join('\n')}</ul>
+</body>
+</html>
+      `.trim();
+
+      fs.writeFileSync('dist/sitemap.html', html); // Створюємо sitemap
+      console.log('\x1b[36m%s\x1b[0m', '🗺️  sitemap.html оновлено!');
+      callback();
+      cb(); // Завершуємо таск
+    }));
+}
+
+// Компіляція SCSS → CSS, мініфікація і перейменування
 function styles() {
   console.log('\x1b[35m%s\x1b[0m', '🎨 SCSS компілюється...');
   return gulp.src(paths.styles.src)
-    .pipe(sass().on('error', sass.logError))
-    .pipe(cleanCSS())
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(gulp.dest(paths.styles.dest))
-    .pipe(browserSync.stream());
+    .pipe(sass().on('error', sass.logError)) // Компіляція SCSS
+    .pipe(cleanCSS()) // Мініфікація
+    .pipe(rename({ suffix: '.min' })) // Додаємо .min до назви
+    .pipe(gulp.dest(paths.styles.dest)) // Запис у dist/css
+    .pipe(browserSync.stream()); // Оновлення сторінки
 }
 
-// === JS app.js ===
+// Копіювання app.js без мінімізації
 function jsApp() {
   console.log('\x1b[33m%s\x1b[0m', '🧩 jsApp копіюється без мінімізації...');
   return gulp.src(paths.scripts.app)
@@ -64,17 +110,17 @@ function jsApp() {
     .pipe(browserSync.stream());
 }
 
-// === JS functions (мінімізація) ===
+// Мініфікація функціональних JS-файлів
 function jsFunctions() {
   console.log('\x1b[32m%s\x1b[0m', '⚙️ jsFunctions мінімізується...');
   return gulp.src(paths.scripts.functions)
-    .pipe(plumber())
-    .pipe(uglify())
+    .pipe(plumber()) // Запобігання зупинці при помилках
+    .pipe(uglify()) // Мініфікація
     .pipe(gulp.dest(paths.scripts.functionsDest))
     .pipe(browserSync.stream());
 }
 
-// === ЗОБРАЖЕННЯ (копіювання) ===
+// Копіювання зображень у dist
 function images() {
   console.log('\x1b[34m%s\x1b[0m', '🖼️ Зображення копіюються...');
   return gulp.src(paths.images.src)
@@ -82,44 +128,28 @@ function images() {
     .pipe(browserSync.stream());
 }
 
-// === ВИДАЛЕННЯ ЗОБРАЖЕНЬ ІЗ DIST, ЯКЩО ЇХ ВИДАЛЕНО В SRC ===
-function watchImages() {
-  const watcher = gulp.watch(paths.images.src, images);
-
-  watcher.on('unlink', async function (filePath) {
-    const del = (await import('del')).deleteSync;
-
-    const srcFull = path.resolve(filePath);
-    const distFull = srcFull.replace(
-      path.resolve('src/images'),
-      path.resolve('dist/images')
-    );
-
-    if (fs.existsSync(distFull)) {
-      del(distFull, { force: true });
-      console.log('\x1b[31m%s\x1b[0m', `🗑️ Видалено: ${distFull}`);
-    }
-  });
-}
-
-// === СПОСТЕРЕЖЕННЯ ЗА ВСІМ ===
+// Відслідковування змін і live-reload у браузері
 function watch() {
   browserSync.init({
     server: {
-      baseDir: './dist'
+      baseDir: './dist' // Запускаємо локальний сервер з папки dist
     }
   });
 
-  gulp.watch(paths.html.watch, html);
-  gulp.watch(paths.styles.src, styles);
-  gulp.watch(paths.scripts.app, jsApp);
-  gulp.watch(paths.scripts.functions, jsFunctions);
-  watchImages(); // окремий виклик
+  // Спостереження за всіма файлами
+  gulp.watch(paths.html.watch, gulp.series(html, sitemap)); // HTML + sitemap
+  gulp.watch(paths.styles.src, styles); // SCSS
+  gulp.watch(paths.scripts.app, jsApp); // JS app
+  gulp.watch(paths.scripts.functions, jsFunctions); // JS функції
+  gulp.watch(paths.images.src, images); // Зображення
+
   console.log('\x1b[44m%s\x1b[0m', '👀 Gulp слідкує за файлами...');
 }
 
-// === ЕКСПОРТИ ===
+// Основне завдання за замовчуванням: очищення → паралельна обробка → sitemap → спостереження
 exports.default = gulp.series(
+  clean,
   gulp.parallel(html, styles, jsApp, jsFunctions, images),
+  sitemap,
   watch
 );
