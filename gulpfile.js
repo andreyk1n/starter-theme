@@ -10,6 +10,7 @@ const plumber = require('gulp-plumber'); // Запобігає зупинці Gu
 const fs = require('fs'); // Робота з файловою системою (вбудований модуль Node.js)
 const path = require('path'); // Робота з шляхами (вбудований модуль Node.js)
 const through2 = require('through2'); // Обробка потоків (для sitemap)
+const copy = require('gulp-copy'); // Для копіювання файлів
 
 // Очищення директорії dist перед збіркою
 // del — ES-модуль, тому імпортуємо динамічно
@@ -64,8 +65,7 @@ function sitemap(cb) {
       callback();
     }, function (callback) {
       // Формуємо HTML для sitemap
-      const html = `
-<!DOCTYPE html>
+      const html = `<!DOCTYPE html>
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
@@ -81,8 +81,7 @@ function sitemap(cb) {
   <h1>Карта сайту</h1>
   <ul>${links.join('\n')}</ul>
 </body>
-</html>
-      `.trim();
+</html>`.trim();
 
       fs.writeFileSync('dist/sitemap.html', html); // Створюємо sitemap
       console.log('\x1b[36m%s\x1b[0m', '🗺️  sitemap.html оновлено!');
@@ -124,8 +123,9 @@ function jsFunctions() {
 function images() {
   console.log('\x1b[34m%s\x1b[0m', '🖼️ Зображення копіюються...');
   return gulp.src(paths.images.src)
-    .pipe(gulp.dest(paths.images.dest))
-    .pipe(browserSync.stream());
+    .pipe(copy(paths.images.dest, { prefix: 2 })) // Копіюємо зображення до dist/images
+    .pipe(browserSync.stream())
+    .on('end', () => console.log('Зображення успішно скопійовано!'));
 }
 
 // Відслідковування змін і live-reload у браузері
