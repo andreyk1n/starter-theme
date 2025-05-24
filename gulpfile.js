@@ -39,6 +39,10 @@ const paths = {
   images: {
     src: 'src/images/**/*.*', // Всі зображення
     dest: 'dist/images/' // Куди копіювати зображення
+  },
+  fonts: {
+    src: 'src/fonts/**/*.*',  // Всі шрифти
+    dest: 'dist/fonts/'       // Куди копіювати
   }
 };
 
@@ -147,6 +151,15 @@ function images() {
     .on('end', () => console.log('Зображення успішно скопійовано!'));
 }
 
+// Копіювання шрифтів у dist
+function fonts() {
+  console.log('\x1b[36m%s\x1b[0m', '🔤 Шрифти копіюються...');
+  return gulp.src(paths.fonts.src)
+    .pipe(copy(paths.fonts.dest, { prefix: 2 }))
+    .pipe(browserSync.stream())
+    .on('end', () => console.log('Шрифти успішно скопійовано!'));
+}
+
 // Відслідковування змін і live-reload у браузері
 function watch() {
   browserSync.init({
@@ -168,7 +181,7 @@ function watch() {
 // Основне завдання за замовчуванням: очищення → паралельна обробка → sitemap → спостереження
 exports.default = gulp.series(
   clean,
-  gulp.parallel(html, styles, jsApp, jsFunctions, images),
+  gulp.parallel(html, styles, jsApp, jsFunctions, images, fonts),
   sitemap,
   watch
 );
