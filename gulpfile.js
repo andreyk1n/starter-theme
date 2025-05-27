@@ -161,13 +161,26 @@ function fonts() {
     .on('end', () => console.log('Шрифти успішно скопійовано!'));
 }
 
-// Архівація папки dist у папку archives
+function getArchiveName(baseName) {
+  const archiveDir = 'archives';
+  const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  let archiveName = `${baseName}-${date}.zip`;
+  let counter = 1;
+
+  while (fs.existsSync(path.join(archiveDir, archiveName))) {
+    archiveName = `${baseName}-${date}-${counter}.zip`;
+    counter++;
+  }
+
+  return archiveName;
+}
+
+// Архівація папки dist
 async function zipDist() {
   const zip = (await import('gulp-zip')).default;
   const archiveDir = 'archives';
-  const archiveName = 'dist.zip';
+  const archiveName = getArchiveName('dist');
 
-  // Створюємо папку archives, якщо не існує
   if (!fs.existsSync(archiveDir)) {
     fs.mkdirSync(archiveDir);
     console.log('\x1b[36m%s\x1b[0m', '📁 Створено папку archives');
@@ -179,13 +192,12 @@ async function zipDist() {
     .pipe(gulp.dest(archiveDir));
 }
 
-// Архівація всього проєкту у папку archives
+// Архівація всього проєкту
 async function zipProject() {
   const zip = (await import('gulp-zip')).default;
   const archiveDir = 'archives';
-  const archiveName = 'project.zip';
+  const archiveName = getArchiveName('project');
 
-  // Створюємо папку archives, якщо не існує
   if (!fs.existsSync(archiveDir)) {
     fs.mkdirSync(archiveDir);
     console.log('\x1b[36m%s\x1b[0m', '📁 Створено папку archives');
@@ -196,7 +208,7 @@ async function zipProject() {
     '**/*',
     '!node_modules/**',
     '!.git/**',
-    '!archives/**',       // Не включати попередні архіви
+    '!archives/**',
     '!.DS_Store',
     '!*.log'
   ], { dot: true })
