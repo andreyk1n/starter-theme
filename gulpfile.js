@@ -12,6 +12,7 @@ const path = require('path'); // Робота з шляхами (вбудова�
 const through2 = require('through2'); // Обробка потоків (для sitemap)
 const copy = require('gulp-copy'); // Для копіювання файлів
 
+
 // Очищення директорії dist перед збіркою
 // del — ES-модуль, тому імпортуємо динамічно
 async function clean() {
@@ -160,6 +161,49 @@ function fonts() {
     .on('end', () => console.log('Шрифти успішно скопійовано!'));
 }
 
+// Архівація папки dist у папку archives
+async function zipDist() {
+  const zip = (await import('gulp-zip')).default;
+  const archiveDir = 'archives';
+  const archiveName = 'dist.zip';
+
+  // Створюємо папку archives, якщо не існує
+  if (!fs.existsSync(archiveDir)) {
+    fs.mkdirSync(archiveDir);
+    console.log('\x1b[36m%s\x1b[0m', '📁 Створено папку archives');
+  }
+
+  console.log('\x1b[45m%s\x1b[0m', `📦 Архівація dist → ${archiveDir}/${archiveName}`);
+  return gulp.src('dist/**/*', { base: 'dist' })
+    .pipe(zip(archiveName))
+    .pipe(gulp.dest(archiveDir));
+}
+
+// Архівація всього проєкту у папку archives
+async function zipProject() {
+  const zip = (await import('gulp-zip')).default;
+  const archiveDir = 'archives';
+  const archiveName = 'project.zip';
+
+  // Створюємо папку archives, якщо не існує
+  if (!fs.existsSync(archiveDir)) {
+    fs.mkdirSync(archiveDir);
+    console.log('\x1b[36m%s\x1b[0m', '📁 Створено папку archives');
+  }
+
+  console.log('\x1b[45m%s\x1b[0m', `📦 Архівація проєкту → ${archiveDir}/${archiveName}`);
+  return gulp.src([
+    '**/*',
+    '!node_modules/**',
+    '!.git/**',
+    '!archives/**',       // Не включати попередні архіви
+    '!.DS_Store',
+    '!*.log'
+  ], { dot: true })
+    .pipe(zip(archiveName))
+    .pipe(gulp.dest(archiveDir));
+}
+
 // Відслідковування змін і live-reload у браузері
 function watch() {
   browserSync.init({
@@ -174,7 +218,6 @@ function watch() {
   gulp.watch(paths.scripts.app, jsApp); // JS app
   gulp.watch(paths.scripts.functions, jsFunctions); // JS функції
   gulp.watch(paths.images.src, images); // Зображення
-  gulp.watch(paths.fonts.src, fonts); // Зображення
 
   console.log('\x1b[44m%s\x1b[0m', '👀 Gulp слідкує за файлами...');
 }
@@ -186,3 +229,7 @@ exports.default = gulp.series(
   sitemap,
   watch
 );
+
+// Окремі команди
+exports.zipDist = zipDist;       // gulp zipDist — архівує dist
+exports.zipProject = zipProject; // gulp zipProject — архівує весь проєкт
