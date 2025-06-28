@@ -154,6 +154,12 @@ function images() {
 
 // Копіювання шрифтів у dist
 function fonts() {
+  const fontsPath = paths.fonts.src.replace('/**/*.*', '');
+  if (!fs.existsSync(fontsPath)) {
+    console.warn('\x1b[33m%s\x1b[0m', `⚠️ Папка шрифтів не знайдена: ${fontsPath}`);
+    return Promise.resolve(); // Продовжити без помилки
+  }
+
   console.log('\x1b[36m%s\x1b[0m', '🔤 Шрифти копіюються...');
   return gulp.src(paths.fonts.src)
     .pipe(copy(paths.fonts.dest, { prefix: 2 }))
