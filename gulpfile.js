@@ -11,7 +11,7 @@ const fs = require('fs'); // Робота з файловою системою (
 const path = require('path'); // Робота з шляхами (вбудований модуль Node.js)
 const through2 = require('through2'); // Обробка потоків (для sitemap)
 const copy = require('gulp-copy'); // Для копіювання файлів
-
+const { exec } = require('child_process'); // Для виконання shell-команд (git)
 
 // Очищення директорії dist перед збіркою
 // del — ES-модуль, тому імпортуємо динамічно
@@ -240,6 +240,22 @@ function watch() {
   console.log('\x1b[44m%s\x1b[0m', '👀 Gulp слідкує за файлами...');
 }
 
+// Публікація на GitHub Pages за допомогою git subtree
+function publish(cb) {
+  console.log('\x1b[45m%s\x1b[0m', '🚀 Публікація на gh-pages...');
+  exec('git subtree push --prefix dist origin gh-pages', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`❌ Помилка публікації: ${error.message}`);
+      return cb(error);
+    }
+    if (stderr) {
+      console.error(`⚠️  Вивід помилок: ${stderr}`);
+    }
+    console.log(`✅ Публікація успішна! Вивід: ${stdout}`);
+    cb();
+  });
+}
+
 // Основне завдання за замовчуванням: очищення → паралельна обробка → sitemap → спостереження
 exports.default = gulp.series(
   clean,
@@ -251,3 +267,4 @@ exports.default = gulp.series(
 // Окремі команди
 exports.zipDist = zipDist;       // gulp zipDist — архівує dist
 exports.zipProject = zipProject; // gulp zipProject — архівує весь проєкт
+exports.publish = publish;       // gulp publish — публікує на gh-pages
