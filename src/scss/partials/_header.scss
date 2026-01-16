@@ -55,7 +55,7 @@
                 display: block;
                 width: 100%;
                 height: 2px;
-                background-color: $buttonBgColor;
+                background-color: $fontColor;
                 position: relative;
                 transition-duration: $transitionDuration;
         
@@ -65,7 +65,7 @@
                     position: absolute;
                     width: 100%;
                     height: 2px;
-                    background-color: $buttonBgColor;
+                    background-color: $fontColor;
                     transition-duration: $transitionDuration;
                 }
         
