@@ -49,20 +49,17 @@ const paths = {
 
 // Обробка кастомних директив @@img("...") та @@bgimg("...") в HTML-файлах
 function replaceAliases() {
-  return through2.obj(function (file, _, cb) {
-    if (file.isBuffer()) {
-      let content = file.contents.toString();
-
-      // Заміна @img/filename.jpg → images/filename.jpg
-      content = content.replace(/@img\//g, './images/');
-
-      // Заміна @bgimg/filename.jpg → background-image: url('images/filename.jpg');
-      content = content.replace(/@bgimg\/([^)'" ]+)/g, "background-image: url('./images/$1')");
-
-      file.contents = Buffer.from(content);
-    }
-    cb(null, file);
-  });
+    return through2.obj(function (file, _, cb) {
+        if (file.isBuffer()) {
+            let content = file.contents.toString();
+            // @img/filename.jpg → ./images/filename.jpg
+            content = content.replace(/@img\//g, './images/');
+            // @bgimg/filename.jpg → ./images/filename.jpg
+            content = content.replace(/@bgimg\//g, './images/');
+            file.contents = Buffer.from(content);
+        }
+        cb(null, file);
+    });
 }
 
 // Обробка HTML-файлів із підключенням include'ів
